@@ -35,10 +35,18 @@ void State::builder(MachineReservation::ptr reservation)
             activeSteps_.lock()->erase(activeStep);
         });
 
+        auto conn(dbPool.get());
+
         try {
             auto destStore = getDestStore();
             // Might release the reservation.
-            res = doBuildStep(destStore, reservation, activeStep);
+            res = doBuildStep(destStore, reservation, *conn, activeStep);
+        } catch (pqxx::broken_connection & e) {
+            printMsg(lvlError, "db lost while building ‘%s’ on ‘%s’: %s (retriable)",
+                localStore->printStorePath(activeStep->step->drvPath),
+                reservation ? reservation->machine->sshName : std::string("(no machine)"),
+                e.what());
+            conn.markBad();
         } catch (std::exception & e) {
             printMsg(lvlError, "uncaught exception building ‘%s’ on ‘%s’: %s",
                 localStore->printStorePath(activeStep->step->drvPath),
@@ -76,6 +84,7 @@ void State::builder(MachineReservation::ptr reservation)
 
 State::StepResult State::doBuildStep(nix::ref<Store> destStore,
     MachineReservation::ptr & reservation,
+    Connection & conn,
     std::shared_ptr<ActiveStep> activeStep)
 {
     auto step(reservation->step);
@@ -109,8 +118,6 @@ State::StepResult State::doBuildStep(nix::ref<Store> destStore,
         .keepFailed = false,
     };
 
-    auto conn(dbPool.get());
-
     {
         std::set<Build::ptr> dependents;
         std::set<Step::ptr> steps;
@@ -135,7 +142,7 @@ State::StepResult State::doBuildStep(nix::ref<Store> destStore,
         for (auto build2 : dependents) {
             if (build2->drvPath == step->drvPath) {
                 build = build2;
-                pqxx::work txn(*conn);
+                pqxx::work txn(conn);
                 notifyBuildStarted(txn, build->id);
                 txn.commit();
             }
@@ -190,7 +197,7 @@ State::StepResult State::doBuildStep(nix::ref<Store> destStore,
 
     /* If any of the outputs have previously failed, then don't bother
        building again. */
-    if (checkCachedFailure(step, *conn))
+    if (checkCachedFailure(step, conn))
         result.stepStatus = bsCachedFailure;
     else {
 
@@ -198,13 +205,13 @@ State::StepResult State::doBuildStep(nix::ref<Store> destStore,
            building. */
         {
             auto mc = startDbUpdate();
-            pqxx::work txn(*conn);
+            pqxx::work txn(conn);
             stepNr = createBuildStep(txn, result.startTime, buildId, step, machine->sshName, bsBusy);
             txn.commit();
         }
 
         auto updateStep = [&](StepState stepState) {
-            pqxx::work txn(*conn);
+            pqxx::work txn(conn);
             updateBuildStep(txn, buildId, stepNr, stepState);
             txn.commit();
         };
@@ -255,7 +262,7 @@ State::StepResult State::doBuildStep(nix::ref<Store> destStore,
 
     /* Finish the step in the database. */
     if (stepNr) {
-        pqxx::work txn(*conn);
+        pqxx::work txn(conn);
         finishBuildStep(txn, result, buildId, stepNr, machine->sshName);
         txn.commit();
     }
@@ -331,7 +338,7 @@ State::StepResult State::doBuildStep(nix::ref<Store> destStore,
             {
                 auto mc = startDbUpdate();
 
-                pqxx::work txn(*conn);
+                pqxx::work txn(conn);
 
                 for (auto & b : direct) {
                     printInfo("marking build %1% as succeeded", b->id);
@@ -359,7 +366,7 @@ State::StepResult State::doBuildStep(nix::ref<Store> destStore,
         /* Send notification about the builds that have this step as
            the top-level. */
         {
-            pqxx::work txn(*conn);
+            pqxx::work txn(conn);
             for (auto id : buildIDs)
                 notifyBuildFinished(txn, id, {});
             txn.commit();
@@ -388,7 +395,7 @@ State::StepResult State::doBuildStep(nix::ref<Store> destStore,
         }
 
     } else
-        failStep(*conn, step, buildId, result, machine, stepFinished);
+        failStep(conn, step, buildId, result, machine, stepFinished);
 
     // FIXME: keep stats about aborted steps?
     nrStepsDone++;
