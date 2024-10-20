@@ -68,8 +68,6 @@ in
 
       package = mkOption {
         type = types.path;
-        default = pkgs.hydra_unstable;
-        defaultText = literalExpression "pkgs.hydra";
         description = "The Hydra package.";
       };
 
