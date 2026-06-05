@@ -2,13 +2,11 @@
 # fails with a transient failure (here: a fetchurl whose source is down) must
 # be retried and eventually succeed once the source is back.
 {
-  system,
-  nixpkgs,
-  common,
+  pkgs,
 }:
 
 let
-  pkgs = nixpkgs.legacyPackages.${system};
+  common = import ./common.nix;
 
   # builtin:fetchurl runs on the builder node, so the source is served there.
   jobset = pkgs.writeText "jobset.nix" ''
@@ -33,7 +31,7 @@ let
   };
 in
 
-(import (nixpkgs + "/nixos/lib/testing-python.nix") { inherit system; }).makeTest {
+pkgs.testers.runNixOSTest {
   name = "hydra-transient-retry";
   nodes.server = {
     imports = [ common.serverConfig ];

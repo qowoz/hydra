@@ -156,7 +156,7 @@ in
 
       package = lib.mkOption {
         type = lib.types.package;
-        default = pkgs.callPackage ./. { };
+        default = pkgs.hydraPackages.hydra-builder;
       };
 
       logFile = lib.mkOption {
@@ -224,8 +224,8 @@ in
 
     nix = {
       settings = {
-        trusted-users = [ user.name ];
-        experimental-features = [ "nix-command" ];
+        extra-trusted-users = [ user.name ];
+        extra-experimental-features = [ "nix-command" ];
       };
     };
 

@@ -67,7 +67,12 @@ let
     ];
   };
 
-  cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+  cargoArtifacts = craneLib.buildDepsOnly (
+    commonArgs
+    // {
+      inherit cargoExtraArgs;
+    }
+  );
 
   # A virtual manifest rejects a bare `--features`, so name the members. Every
   # member that has the feature gets it: enabling it for only some of them
@@ -79,6 +84,9 @@ let
     "hydra-ad-hoc/otel"
   ];
 
+  cargoExtraArgs =
+    if stdenv.hostPlatform.system == "x86_64-linux" then "--workspace" else "--package hydra-builder";
+
   # `cargoArtifacts` is a whole-workspace `buildDepsOnly`, so its dependencies
   # are compiled with the features unified across every member. Building a
   # single member with `--package` resolves a *narrower* feature set
@@ -89,11 +97,7 @@ let
   workspace = craneLib.buildPackage (
     commonArgs
     // {
-      inherit version cargoArtifacts;
-      cargoExtraArgs = lib.concatStringsSep " " (
-        [ "--workspace" ]
-        ++ lib.optional (features != [ ]) "--features ${lib.concatStringsSep "," features}"
-      );
+      inherit version cargoArtifacts cargoExtraArgs;
       # Tests run in the separate `tests` check below.
       doCheck = false;
     }
@@ -115,8 +119,10 @@ let
     commonArgs
     // {
       inherit cargoArtifacts;
-      nativeBuildInputs = commonArgs.nativeBuildInputs ++ [ postgresql_17 ];
-      cargoNextestExtraArgs = "--workspace";
+      nativeBuildInputs =
+        commonArgs.nativeBuildInputs
+        ++ lib.optionals (stdenv.hostPlatform.system == "x86_64-linux") [ postgresql_17 ];
+      cargoNextestExtraArgs = cargoExtraArgs;
     }
   );
 

@@ -6,7 +6,6 @@
   releaseVersion,
   craneLib,
   # Source of the `nix-eval-jobs` flake input, which carries its own package.nix.
-  nix-eval-jobs-src,
   # The flake itself, which `hydra` wants unfiltered for its version stamp.
   rawSrc,
   nixComponents,
@@ -21,9 +20,6 @@ self': {
   hydra-clippy = self'.rustWorkspace.clippy;
   hydra-clippy-all = self'.rustWorkspace.clippyAll;
   hydra-rust-tests = self'.rustWorkspace.tests;
-  nix-eval-jobs = self'.callPackage nix-eval-jobs-src {
-    inherit nixComponents;
-  };
   nix-perl = self'.callPackage ../subprojects/nix-perl/package.nix {
     inherit (nixComponents) nix-store;
   };
