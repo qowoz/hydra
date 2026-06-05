@@ -1,10 +1,10 @@
 {
-  system,
-  nixpkgs,
-  common,
+  pkgs,
 }:
-
-(import (nixpkgs + "/nixos/lib/testing-python.nix") { inherit system; }).simpleTest {
+let
+  common = import ./common.nix;
+in
+pkgs.testers.runNixOSTest {
   name = "hydra-install";
   nodes.server = common.serverConfig;
   nodes.builder = common.builderConfig;

@@ -63,6 +63,7 @@ in
 
       package = mkOption {
         type = types.package;
+        default = pkgs.hydraPackages.hydra-evaluator;
         description = "The `hydra-evaluator` package.";
       };
 
