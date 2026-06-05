@@ -82,7 +82,7 @@ in
         type = lib.types.package;
         # `withOtel` is a knob on the rust workspace, not on this crate: cargo
         # resolves features once for the whole workspace build.
-        default = (pkgs.hydraComponents.overrideScope (_: _: { withOtel = cfg.otel.enable; })).hydra-ad-hoc;
+        default = pkgs.hydraPackages.hydra-ad-hoc;
         defaultText = lib.literalExpression "pkgs.hydraComponents.hydra-ad-hoc";
       };
     };
@@ -202,7 +202,7 @@ in
     # nix-daemon on behalf of its clients, and some of what it forwards
     # may need a trusted user.
     nix.settings = {
-      trusted-users = [ user ];
+      extra-trusted-users = [ user ];
     };
 
     users = {
