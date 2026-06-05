@@ -33,7 +33,7 @@
   pixz,
   nix-eval-jobs,
   curl,
-  kanidm_1_10,
+  kanidm_1_11,
   jq,
 
   cacert,
@@ -133,7 +133,7 @@ stdenv.mkDerivation (finalAttrs: {
     nix-eval-jobs
     socat
     curl
-    kanidm_1_10
+    kanidm_1_11
     jq
   ]
   ++ hydra.perlDeps;
@@ -156,7 +156,7 @@ stdenv.mkDerivation (finalAttrs: {
   ]);
 
   OPENLDAP_ROOT = openldap;
-  KANIDM_ROOT = kanidm_1_10;
+  KANIDM_ROOT = kanidm_1_11;
   # What each program the suite launches is given; see `HydraTestPrograms`.
   HYDRA_TEST_PROGRAM_ENV = programEnv;
 

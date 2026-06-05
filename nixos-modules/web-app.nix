@@ -77,6 +77,7 @@ in
 
       package = mkOption {
         type = types.path;
+        default = pkgs.hydraPackages.hydra;
         description = "The Hydra package.";
       };
 

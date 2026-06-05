@@ -44,6 +44,7 @@ in
 
       package = mkOption {
         type = types.package;
+        default = pkgs.hydraPackages.hydra-notify;
         description = "The `hydra-notify` package.";
       };
     };

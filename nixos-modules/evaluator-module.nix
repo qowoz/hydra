@@ -70,14 +70,14 @@ in
 
       package = mkOption {
         type = types.package;
-        default = pkgs.hydraComponents.hydra-evaluator;
+        default = pkgs.hydraPackages.hydra-evaluator;
         defaultText = literalExpression "pkgs.hydraComponents.hydra-evaluator";
         description = "The `hydra-evaluator` package.";
       };
 
       helpersPackage = mkOption {
         type = types.package;
-        default = pkgs.hydraComponents.hydra-evaluator-helpers;
+        default = pkgs.hydraPackages.hydra-evaluator-helpers;
         defaultText = literalExpression "pkgs.hydraComponents.hydra-evaluator-helpers";
         description = ''
           The package providing `hydra-fetch-input` and `hydra-prepare-declarative-jobset`,
@@ -87,7 +87,7 @@ in
 
       nixEvalJobsPackage = mkOption {
         type = types.package;
-        default = pkgs.hydraComponents.nix-eval-jobs;
+        default = pkgs.nix-eval-jobs;
         defaultText = literalExpression "pkgs.hydraComponents.nix-eval-jobs";
         description = "The `nix-eval-jobs` package the evaluator runs.";
       };
