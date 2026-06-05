@@ -64,8 +64,6 @@ sub closure : Chained('nix') PathPart {
 
     requireLocalStore($c);
 
-    $c->stash->{current_view} = 'NixClosure';
-
     getChannelData($c, 1);
 
     # FIXME: get the closure of the selected path only.
