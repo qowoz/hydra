@@ -103,11 +103,13 @@ in
 
       package = mkOption {
         type = types.path;
+        default = pkgs.hydraPackages.hydra;
         description = "The Hydra package.";
       };
 
       evaluatorExecutable = mkOption {
         type = types.path;
+        default = "${pkgs.hydraPackages.hydra-evaluator}/bin/hydra-evaluator";
         description = "Path to the hydra-evaluator executable.";
       };
 

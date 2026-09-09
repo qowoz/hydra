@@ -144,7 +144,7 @@ in
 
       package = lib.mkOption {
         type = lib.types.package;
-        default = pkgs.callPackage ./. { };
+        default = pkgs.hydraPackages.hydra-builder;
       };
 
       logFile = lib.mkOption {
@@ -187,7 +187,7 @@ in
 
       environment = {
         RUST_BACKTRACE = "1";
-        NIX_SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+        inherit (config.environment.variables) NIX_SSL_CERT_FILE;
         # The builder execs `nix build` to realise derivations.  The linux
         # module sets `path = [ config.nix.package ]` on the systemd service;
         # launchd has no equivalent, so we set PATH explicitly.
@@ -208,6 +208,13 @@ in
     environment.etc."hydra/builder.toml".source = format.generate "builder.toml" (
       lib.filterAttrsRecursive (_: v: v != null) cfg.settings
     );
+
+    nix = {
+      settings = {
+        extra-trusted-users = [ user.name ];
+        extra-experimental-features = [ "nix-command" ];
+      };
+    };
 
     users = {
       users.hydra-queue-builder = {

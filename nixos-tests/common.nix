@@ -1,7 +1,3 @@
-{
-  nixosModules,
-}:
-
 let
   # Shared nix settings for all test VMs
   nixSettings = {
@@ -14,9 +10,9 @@ in
     { pkgs, ... }:
     {
       imports = [
-        nixosModules.web-app
-        nixosModules.queue-runner
-        nixosModules.ad-hoc
+        ../nixos-modules/web-app.nix
+        ../nixos-modules/queue-runner-module.nix
+        ../nixos-modules/ad-hoc-module.nix
       ];
 
       services.hydra-dev.enable = true;
@@ -35,6 +31,7 @@ in
       time.timeZone = "UTC";
 
       nix = nixSettings // {
+        package = pkgs.nixVersions.nix_2_35;
         extraOptions = ''
           allowed-uris = https://github.com/
         '';
@@ -52,10 +49,10 @@ in
     };
 
   builderConfig =
-    { ... }:
+    { pkgs, ... }:
     {
       imports = [
-        nixosModules.builder
+        ../nixos-modules/builder-module.nix
       ];
 
       services.hydra-queue-builder-dev.enable = true;
@@ -64,6 +61,8 @@ in
       virtualisation.memorySize = 2048;
       virtualisation.writableStore = true;
 
-      nix = nixSettings;
+      nix = nixSettings // {
+        package = pkgs.nixVersions.nix_2_35;
+      };
     };
 }

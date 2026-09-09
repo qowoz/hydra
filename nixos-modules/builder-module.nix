@@ -165,8 +165,7 @@ in
         type = lib.types.package;
         # `withOtel` is a knob on the rust workspace, not on this crate: cargo
         # resolves features once for the whole workspace build.
-        default =
-          (pkgs.hydraComponents.overrideScope (_: _: { withOtel = cfg.otel.enable; })).hydra-builder;
+        default = pkgs.hydraPackages.hydra-builder;
         defaultText = lib.literalExpression "pkgs.hydraComponents.hydra-builder";
       };
     };
@@ -284,8 +283,8 @@ in
 
     nix = {
       settings = {
-        trusted-users = [ user ];
-        experimental-features = [ "nix-command" ];
+        extra-trusted-users = [ user ];
+        extra-experimental-features = [ "nix-command" ];
       };
     };
 
