@@ -2,13 +2,11 @@
 # maxLogSize and maxOutputSize. Also checks that meta.maxSilent overrides the
 # queue-runner's maxSilentTime default rather than being capped by it.
 {
-  system,
-  nixpkgs,
-  common,
+  pkgs,
 }:
 
 let
-  pkgs = nixpkgs.legacyPackages.${system};
+  common = import ./common.nix;
 
   maxLogSize = 65536; # 64 KiB
   maxOutputSize = 1048576; # 1 MiB
@@ -21,7 +19,7 @@ let
     let
       mkJob = { name, script, meta ? { } }: derivation {
         inherit name;
-        system = "${system}";
+        system = "${pkgs.stdenv.hostPlatform.system}";
         builder = "/bin/sh";
         args = [ "-eu" "-c" ("export PATH=${pkgs.busybox}/bin; " + script) ];
         allowSubstitutes = false;
@@ -106,7 +104,7 @@ let
   '';
 in
 
-(import (nixpkgs + "/nixos/lib/testing-python.nix") { inherit system; }).makeTest {
+pkgs.testers.runNixOSTest {
   name = "hydra-limits";
   nodes.server = {
     imports = [ common.serverConfig ];
